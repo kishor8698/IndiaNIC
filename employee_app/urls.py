@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from employee_app import views
 urlpatterns = [
-    path('show', views.list_of_employees, name="show"),
+    path('', views.list_of_employees, name="show"),
     path('save-employee', views.save_employee, name='save_employee'),
     path('delete-employee', views.delete_employee, name='delete_employee'),
     path('present-employee', views.present_employee, name='present_employee'),
