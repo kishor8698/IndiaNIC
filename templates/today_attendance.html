@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Todays Attendance {% endblock title %}
+
+{% block body %}
+<a href="{% url 'show' %}" class="btn btn-primary">Back to Home</a>
+<h1><center>Todays Attendance</center></h1>
+<table class="table" id="emp_table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Email</th>
+      <th scope="col">Mobile Number</th>
+      <th scope="col">Department</th>
+      <th scope="col">Attendance</th>
+      <th scope="col">Date</th>
+    </tr>
+  </thead>
+  <tbody id="emp_tbody">
+  {% for row in todays_records %}
+        <tr id="{{row.id}}">
+          <td>{{row.employee.name}}</td>
+          <td>{{row.employee.email}}</td>
+          <td>{{row.employee.mobile}}</td>
+          <td>{{row.employee.department}}</td>
+          <td>{% if row.is_present == True %} 
+                <b style="color: green;">Present</b> 
+                {% elif row.is_present == False %}
+                <b style="color: red;"> Absent </b>
+                {% endif %}    
+            </td>
+          <td>{{row.created_at}}</td>
+        </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock body%}

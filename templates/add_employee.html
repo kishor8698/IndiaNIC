@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}  Add Employee {% endblock title %}
+
+{% block body%}
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Add Employee
+</button>
+<a href="{% url 'today-attendance' %}" class="btn btn-primary">Todays Attendance</a>
+<a href="{% url 'all-attendance-employee' %}" class="btn btn-primary">All Employee's</a>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Employee</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+    <form id="employeeForm" class="center">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name"  class="form-label">Name:</label>
+                    <input type="text" id="name" name="name" required class="form-control"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" id="email" name="email" required class="form-control"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="mobile" class="form-label">Mobile:</label>
+                    <input type="text" id="mobile" name="mobile" required class="form-control"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="department" class="form-label">Department:</label>
+                    <select id="department" name="department" class="form-select" aria-label="Default select example">
+                        <option value="Development">Development</option>
+                        <option value="Testing">Testing</option>
+                        <option value="HR">HR</option>
+                    </select>
+                </div>
+                    <br><br>
+                <input type="submit" value="Submit"  class="btn btn-success">
+            </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ----------------------------------------------------------Edit section  ------------------------------- -->
+<div class="modal fade" id="edit-exampleModal" tabindex="-1" aria-labelledby="edit-exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content"> 
+      <div class="modal-header">
+        <h5 class="modal-title" id="edit-exampleModalLabel">Edit Employee</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+    <form id="edit-employeeForm" class="center">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name"  class="form-label">Name:</label>
+                    <input type="hidden" id="edit-id" name="emp_id">
+                    <input type="text" id="edit-name" name="name" required class="form-control"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" id="edit-email" name="email" required class="form-control"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="mobile" class="form-label">Mobile:</label>
+                    <input type="text" id="edit-mobile" name="mobile" required class="form-control"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="department" class="form-label">Department:</label>
+                    <select id="edit-department" name="department" class="form-select" aria-label="Default select example">
+                        <option value="Development">Development</option>
+                        <option value="Testing">Testing</option>
+                        <option value="HR">HR</option>
+                    </select>
+                </div>
+                    <br><br>
+                <input type="submit" value="Submit"  class="btn btn-success">
+            </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------------------------------------------------------End of edit section                          -->
+
+<!---->
+<div class="mx-auto" style="width: 800px;">
+
+</div>
+
+<! -----------------------------------------------Table ------------------------------------------------>
+<h1><center>All Employees</center></h1>
+<table class="table" id="emp_table">
+  <thead>
+    <tr>
+      <th>Attendance</th>
+      <th scope="col">Name</th>
+      <th scope="col">Email</th>
+      <th scope="col">Mobile Number</th>
+      <th scope="col">Department</th>
+        <th scope="col" colspan="2"><center>Action</center></th>
+    </tr>
+  </thead>
+  <tbody id="emp_tbody">
+  {% for row in data %}
+        <tr id="{{row.id}}">
+          <td><button type="button" class="btn btn-outline-success" onclick="emp_present('{{row.id}}', true);">Present</button>
+            <button type="button" class="btn btn-outline-danger" onclick="emp_present('{{row.id}}', false);">Absent</button></td>
+          <td id="name{{row.id}}">{{row.name}}</td>
+          <td id="email{{row.id}}">{{row.email}}</td>
+          <td id="mobile{{row.id}}">{{row.mobile}}</td>
+          <td id="department{{row.id}}">{{row.department}}</td>
+            <td><center><button type="button" class="btn btn-danger" onclick="delete_employee('{{row.id}}');">Delete</button></center></td>
+        <td><center><button type="button" class="btn btn-primary" onclick="edit_employee('{{row.id}}')" data-bs-toggle="modal" data-bs-target="#edit-exampleModal">Edit</button></center></td>
+        </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+    <script>
+        $(document).ready(function() {
+            $('#employeeForm').submit(function(event) {
+                event.preventDefault();  // Prevent the default form submission
+
+                // Get form data
+                var formData = $(this).serialize();
+
+                // Send AJAX request
+                $.ajax({
+                    type: 'POST',
+                    url: 'save-employee',  // URL to your Django view
+                    data: formData,
+                    success: function(response) {
+                        if (response.status == "success")
+                        {
+                          var row_html="<tr id='"+response.data.emp_id+"'>"+
+                            "<td><button type='button' class='btn btn-outline-success' onclick='emp_present(\""+response.data.emp_id +"\", \"" + true + "\")'>Present</button>"+
+                            "<button type='button' class='btn btn-outline-danger' onclick='emp_present(\""+response.data.emp_id +"\", \"" + false + "\")'>Absent</button></td>"+
+                            "<td id='name"+response.data.emp_id+"'"+">"+response.data.name +"</td>" + "<td id='email"+response.data.emp_id+"'"+">"+ response.data.email +"</td>"+"<td id='mobile"+response.data.emp_id+"'"+">"+ response.data.mobile +"</td>"+"<td id='department"+response.data.emp_id+"'"+">"+response.data.department+"</td>"+
+                           "<td><center><button type='button' class='btn btn-danger' onclick='delete_employee(\""+response.data.emp_id +"\")'>Delete</button></center></td>"+
+                           "<td><center><button type='button' class='btn btn-primary' onclick='edit_employee(\""+response.data.emp_id +"\")' data-bs-toggle='modal' data-bs-target='#edit-exampleModal'>Edit</button></center></td>"+"</tr>"
+                            $("#emp_tbody").append(row_html)
+                            $('#employeeForm')[0].reset();
+                          $('#exampleModal').modal('hide');
+                          $.notify(response.message, "success");
+                        }
+                        else if (response.status == "error")
+                        {
+                          $.notify(response.message, "error");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred while saving the employee.');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+// -----------------------------------------------------------------------delete code -----------------------------------------------
+function delete_employee(emp_id)
+{
+    bootbox.confirm({
+        message: "Are you sure you want to delete record?",
+        buttons: {
+            confirm: {
+                label: 'Yes',
+                className: 'btn-success'
+            },
+            cancel: {
+                label: 'No',
+                className: 'btn-danger'
+            },
+        },
+    callback: function (result) 
+        {
+            if (result)
+            {
+                    $.ajax({
+                                type:"POST",
+                                url:"delete-employee",
+                                data:{"emp_id":emp_id,"csrfmiddlewaretoken": "{{ csrf_token }}"},
+                                success: function (response)
+                                {
+                                    if(response.status=="success")
+                                    {
+                                      var rem=$("#"+response.data.emp_id).remove()
+                                      $.notify(response.message, "success");
+                                    }
+                                    else if (response.status == "error")
+                                    {
+                                      $.notify(response.message, "error");
+                                    }
+
+                                }
+                            });
+            }
+        }
+    });        
+}
+
+function emp_present(emp_id, is_present)
+{
+  $.ajax({
+            type:"POST",
+            url:"present-employee",
+            data:{"emp_id":emp_id,"is_present": is_present, "csrfmiddlewaretoken": "{{ csrf_token }}"},
+            success: function (response)
+            {
+                // alert("hiiiidi")
+                var boolValue = JSON.parse(response.data);
+                if(boolValue == true)
+                {
+                  $.notify(response.message, "success");
+                }
+                else if (boolValue == false)
+                {
+                  console.log("---condition are true")
+
+                  $.notify(response.message, "error");
+                }
+
+            }
+        });
+}
+//  Edit functionality ---------------------------------------------------------------------
+
+function edit_employee(emp_id)
+{
+  var emp_name=$("#name"+ emp_id).text();
+  var emp_email=$("#email"+ emp_id).text();
+  var emp_mobile=$("#mobile"+ emp_id).text();
+  var emp_department=$("#department"+ emp_id).text();
+
+  $("#edit-name").val(emp_name);
+  $("#edit-email").val(emp_email);
+  $("#edit-mobile").val(emp_mobile);
+  $("#edit-department").val(emp_department);
+  $("#edit-id").val(emp_id);
+}
+// -----------------------------------------------------------edit section call JQuery ----------------------------------------
+$('#edit-employeeForm').submit(function(event) {
+                event.preventDefault();  // Prevent the default form submission
+                // Get form data
+                var formData = $(this).serialize();
+                console.log(formData,"<_------------------------")
+                // Send AJAX request
+                $.ajax({
+                    type: 'POST',
+                    url: "edit-employee",
+                    data: formData,
+                    success: function(response) {
+                        if (response.status == "success")
+                        {
+                          $('#edit-exampleModal').modal('hide');
+                          $("#name"+response.updated_data.emp_id).text(response.updated_data.name);
+                          $("#email"+response.updated_data.emp_id).text(response.updated_data.email);
+                          $("#mobile"+response.updated_data.emp_id).text(response.updated_data.mobile);
+                          $("#department"+response.updated_data.emp_id).text(response.updated_data.department);
+                          $.notify(response.message, "success");
+                        }
+                        else if (response.status == "error")
+                        {
+                          $.notify(response.message, "error");
+                        }
+                        // Optionally, redirect or do something else after successful save
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred while saving the employee.');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+</script>
+{% endblock body%}
