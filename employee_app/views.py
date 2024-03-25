@@ -11,6 +11,15 @@ def save_employee(request):
         email = request.POST.get('email')
         mobile = request.POST.get('mobile')
         department = request.POST.get('department')
+        if not name:
+            return JsonResponse({'status': "error", "message": "Name field is mandatory."})
+        if not email:
+            return JsonResponse({'status': "error", "message": "Email field is mandatory."})
+        if not mobile:
+            return JsonResponse({'status': "error", "message": "Mobile field is mandatory."})
+        if not department:
+            return JsonResponse({'status': "error", "message": "Department field is mandatory."})
+
         email_exist = Employee.objects.filter(email=email).first()
         if email_exist:
             return JsonResponse({'status': "error", "message": "Email already exist in database"})
